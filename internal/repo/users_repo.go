@@ -5,34 +5,39 @@ import (
 )
 
 type UserRepo struct {
-	data []model.User
+	data *[]model.User
 }
 
-func NewUserRepo() *UserRepo{
+func NewUserRepo(data *[]model.User) *UserRepo {
 	return &UserRepo{
-		data: []model.User{},
+		data: data,
 	}
 }
 
 func (r *UserRepo) Create(req *model.CreateUser) {
-	id := len(r.data) + 1
 
-	r.data = append(r.data, model.User{
-		ID: int64(id),
-		Email: req.Email,
+	id := len(*r.data) + 1
+
+	*r.data = append(*r.data, model.User{
+		ID:       int64(id),
+		Email:    req.Email,
 		Password: req.Password,
 	})
 }
 
-func (r *UserRepo) FindAll() []model.User{
-	return  r.data
+func (r *UserRepo) FindAll() []model.User {
+	return *r.data
 }
 
-func (r *UserRepo) findByEmail(email string) *model.User {
-	for _, user := range r.data{
-		if user.Email == email {
-			return &user
+func (r *UserRepo) FindByEmail(email string) *model.User {
+
+	for i := range *r.data {
+
+		if (*r.data)[i].Email == email {
+			return &(*r.data)[i]
 		}
+
 	}
+
 	return nil
 }
