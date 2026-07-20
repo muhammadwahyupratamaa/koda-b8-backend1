@@ -20,26 +20,34 @@ func NewUserService(r *repo.UserRepo) *UserService{
 }
 
 func (s *UserService) Register(req *model.CreateUser) error{
+	
+	if req.Name == "" {
+		return errors.New("Name is required!")
+	}
 	if req.Email == "" {
-		return errors.New("Email is required")
+		return errors.New("Email is required!")
 	}
 	if _,err := mail.ParseAddress(req.Email)
 	err != nil{
-		return errors.New("Email not valid")
+		return errors.New("Email not valid!")
 	}
 	if req.Password == "" {
-		return errors.New("Password is required")
+		return errors.New("Password is required!")
 	}
 	if len(req.Password) < 8 {
-		return errors.New("Password must be 8 character")
+		return errors.New("Password must be 8 character!")
 	}
 	user := s.repo.FindByEmail(req.Email)
 
 	if user != nil {
-		return  errors.New("Email already exist")
+		return  errors.New("Email already exist1")
 	}
-	s.repo.Create(req)
-	return nil
+	err := s.repo.Create(req)
+	if err != nil {
+	return err
+}
+
+return nil
 }
 
 func (s *UserService) Login(req *model.LoginUser) error{
@@ -62,6 +70,6 @@ func (s *UserService) Login(req *model.LoginUser) error{
 	return  nil
 }
 
-func (s *UserService) GetUser() []model.User{
+func (s *UserService) GetUser() ([]model.User, error) {
 	return s.repo.FindAll()
 }

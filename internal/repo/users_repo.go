@@ -1,43 +1,130 @@
 package repo
 
 import (
+	"context"
 	"koda-b8-backend1/internal/model"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRepo struct {
-	data *[]model.User
+	db *pgxpool.Pool
 }
 
-func NewUserRepo(data *[]model.User) *UserRepo {
+func NewUserRepo(db *pgxpool.Pool) *UserRepo {
 	return &UserRepo{
-		data: data,
+		db:db,
 	}
 }
 
-func (r *UserRepo) Create(req *model.CreateUser) {
+func (r *UserRepo) Create(req *model.CreateUser) error{
 
-	id := len(*r.data) + 1
+	_, err := r.db.Exec(
+		context.Background(),`
+		INSERT INTO users (name,email,password)
+		VALUES ($1,$2,$3) `,
+		req.Name,
+		req.Email,
+		req.Password,
+	)
+	if err != nil {
+		return err
+	}
+		return nil
 
-	*r.data = append(*r.data, model.User{
-		ID:       int64(id),
-		Email:    req.Email,
-		Password: req.Password,
-	})
+	// id := len(*r.data) + 1
+
+	// *r.data = append(*r.data, model.User{
+	// 	ID:       int64(id),
+	// 	Email:    req.Email,
+	// 	Password: req.Password,
+	// })
 }
 
-func (r *UserRepo) FindAll() []model.User {
-	return *r.data
+func (r *UserRepo) FindAll() ([]model.User, error) {
+
+	rows, err := r.db.Query(
+		context.Background(),
+		`
+		SELECT
+			id,
+			name,
+			email,
+			password,
+			created_at,
+			updated_at
+		FROM users
+		ORDER BY id ASC
+		`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []model.User
+
+	for rows.Next() {
+
+		var user model.User
+
+		err := rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Email,
+			&user.Password,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (r *UserRepo) FindByEmail(email string) *model.User {
 
-	for i := range *r.data {
+	var user model.User
 
-		if (*r.data)[i].Email == email {
-			return &(*r.data)[i]
+	err := r.db.QueryRow(
+		context.Background(),
+		`
+		SELECT
+			id,
+			name,
+			email,
+			password,
+			created_at,
+			updated_at
+		FROM users
+		WHERE email = $1
+		`,
+		email,
+	).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil
 		}
 
+		return nil
 	}
 
-	return nil
+	return &user
 }

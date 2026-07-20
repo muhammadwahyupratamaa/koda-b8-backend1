@@ -2,13 +2,13 @@ package di
 
 import (
 	"koda-b8-backend1/internal/handler"
-	"koda-b8-backend1/internal/model"
 	"koda-b8-backend1/internal/repo"
 	"koda-b8-backend1/internal/svc"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Container struct {
-	userData []model.User
+	db *pgxpool.Pool
 
 	userRepo    *repo.UserRepo
 	userService *svc.UserService
@@ -16,7 +16,7 @@ type Container struct {
 }
 
 func (c *Container) initDeps() {
-	c.userRepo = repo.NewUserRepo(&c.userData)
+	c.userRepo = repo.NewUserRepo(c.db)
 	c.userService = svc.NewUserService(c.userRepo)
 	c.userHandler = handler.NewUserHandler(c.userService)
 }
@@ -25,9 +25,9 @@ func (c *Container) UserHandler() *handler.UserHandler {
 	return c.userHandler
 }
 
-func NewContainer() *Container {
+func NewContainer(db *pgxpool.Pool) *Container {
 	container := &Container{
-		userData: []model.User{},
+		db: db,
 	}
 
 	container.initDeps()

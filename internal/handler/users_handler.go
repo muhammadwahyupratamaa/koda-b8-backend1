@@ -73,12 +73,15 @@ func (h *UserHandler) Login(c *gin.Context) {
 }
 func (h *UserHandler) GetUser(c *gin.Context) {
 
-	users := h.service.GetUser()
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": users,
+	users, err := h.service.GetUser()
+	if err != nil {
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"error": err.Error(),
 	})
+		return
+	}
+
+c.JSON(http.StatusOK, users)
 }
 
 
