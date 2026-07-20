@@ -5,6 +5,7 @@ import (
 	"koda-b8-backend1/internal/model"
 	"koda-b8-backend1/internal/repo"
 	"net/mail"
+	"strings"
 )
 
 
@@ -29,7 +30,7 @@ func (s *UserService) Register(req *model.CreateUser) error{
 	if req.Password == "" {
 		return errors.New("Password is required")
 	}
-	if len(req.Password) <8 {
+	if len(req.Password) < 8 {
 		return errors.New("Password must be 8 character")
 	}
 	user := s.repo.FindByEmail(req.Email)
@@ -43,6 +44,14 @@ func (s *UserService) Register(req *model.CreateUser) error{
 
 func (s *UserService) Login(req *model.LoginUser) error{
 	user := s.repo.FindByEmail(req.Email)
+
+	if strings.TrimSpace(req.Email) == "" {
+    return errors.New("Email address is required")
+	}
+
+	if strings.TrimSpace(req.Password) == "" {
+    return errors.New("Password is required")
+	}
 
 	if user == nil {
 		return errors.New("User not found")
