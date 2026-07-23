@@ -1,0 +1,32 @@
+# Environment Variables
+.env
+
+# Air
+tmp/
+
+# Swagger
+docs/
+
+# Build Output
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+
+# Go Test
+*.test
+coverage.out
+coverage.html
+
+# IDE
+.vscode/
+.idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
